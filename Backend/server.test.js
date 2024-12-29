@@ -1,133 +1,203 @@
 const request = require('supertest');
-const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('./server'); // Importiere die Express-App
-const http = require('http'); // HTTP-Server erstellen
+const http = require('http');
 
-jest.setTimeout(30000); // Timeout auf 30 Sekunden erhöhen
-
-let mongoServer;
 let server;
 
-// Vor den Tests: In-Memory MongoDB starten und Server initialisieren
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-
-    if (mongoose.connection.readyState === 0) {
-        await mongoose.connect(mongoUri, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-    }
-
-    server = http.createServer(app); // HTTP-Server erstellen
-    server.listen(4000); // Server explizit auf Port 4000 starten
+beforeAll(() => {
+    server = http.createServer(app); // Server erstellen
+    server.listen(); // Server starten
 });
 
-// Nach jedem Test: Server schließen
-afterEach(() => {
-    if (server && server.listening) {
-        server.close();
-    }
-});
-
-// Nach den Tests: Verbindung schließen und Server stoppen
-afterAll(async () => {
-    if (server && server.listening) {
-        server.close();
-    }
-    await mongoose.disconnect();
-    await mongoServer.stop();
+afterAll(() => {
+    server.close(); // Server stoppen
 });
 
 describe('API Endpoints Tests', () => {
-    // Test für GET /collections
-    test('GET /collections - sollte alle Sammlungen abrufen', async () => {
-        const res = await request(server).get('/collections');
-        expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
-    });
+    test('POST /questions - sollte eine neue Frage hinzufügen', async () => {
+        const newQuestion = {
+            fragesammlung: "Liam Koch",
+            quiz: "Liam",
+            frage: "Wie alt ist Liam?",
+            antwort: "18",
+            modus: "multiple choice",
+            auswahl: ["4", "16", "15"]
+        };
 
-    // Test für GET /questions
-    test('GET /questions - sollte alle Fragen abrufen', async () => {
-        const res = await request(server).get('/questions');
-        expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
-    });
-
-    // Test für GET /questions/:id
-    test('GET /questions/:id - sollte eine Frage mit einer spezifischen ID abrufen', async () => {
-        const question = await mongoose.connection.db.collection('fragens').insertOne({
-            frageID: '123',
-            frage: 'Was ist 2 + 2?',
-            antwort: '4',
-            modus: 'normal',
-        });
-
-        const res = await request(server).get(`/questions/${question.insertedId}`);
-        expect(res.statusCode).toBe(200);
-        expect(res.body.frage).toBe('Was ist 2 + 2?');
-    });
-
-    // Test für POST /collections
-    test('POST /collections - sollte eine neue Sammlung erstellen', async () => {
-        const res = await request(server)
-            .post('/collections')
-            .send({
-                name: 'Test Sammlung',
-                type: 'Fragesammlung',
-            });
-
-        expect(res.statusCode).toBe(201);
-        expect(res.body.name).toBe('Test Sammlung');
-    });
-
-    // Test für POST /questions
-    test('POST /questions - sollte eine neue Frage erstellen', async () => {
         const res = await request(server)
             .post('/questions')
-            .send({
-                frageID: '12345',
-                frage: 'Was ist die Hauptstadt von Deutschland?',
-                antwort: 'Berlin',
-                modus: 'normal',
-            });
+            .send(newQuestion);
 
         expect(res.statusCode).toBe(201);
-        expect(res.body.frage).toBe('Was ist die Hauptstadt von Deutschland?');
+        expect(res.body).toMatchObject(newQuestion);
     });
 
-    // Test für PUT /questions/update/:id
-    test('PUT /questions/update/:id - sollte eine Frage aktualisieren', async () => {
-        const question = await mongoose.connection.db.collection('fragens').insertOne({
-            frageID: '12346',
-            frage: 'Was ist 3 + 3?',
-            antwort: '6',
-            modus: 'normal',
-        });
+    test('POST /questions - sollte eine Frage ohne Auswahl hinzufügen', async () => {
+        const newQuestion = {
+            fragesammlung: "Liam Koch",
+            quiz: "Liam",
+            frage: "Wie heisst du",
+            antwort: "Liam Koch",
+            modus: "normal",
+            auswahl: ""
+        };
 
         const res = await request(server)
-            .put(`/questions/update/${question.insertedId}`)
-            .send({
-                antwort: 'sechs',
-            });
+            .post('/questions')
+            .send(newQuestion);
 
-        expect(res.statusCode).toBe(200);
-        expect(res.body.antwort).toBe('sechs');
+        expect(res.statusCode).toBe(201);
+        expect(res.body).toMatchObject(newQuestion);
     });
 
-    // Test für DELETE /questions/:id
-    test('DELETE /questions/:id - sollte eine Frage löschen', async () => {
-        const question = await mongoose.connection.db.collection('fragens').insertOne({
-            frageID: '12347',
-            frage: 'Was ist 4 + 4?',
-            antwort: '8',
-            modus: 'normal',
-        });
+    test('POST /questions - sollte eine Frage mit true or false Modus hinzufügen', async () => {
+        const newQuestion = {
+            fragesammlung: "",
+            quiz: "Test9",
+            frage: "Bin ich liam",
+            antwort: "richtig",
+            modus: "true or false",
+            auswahl: ""
+        };
 
-        const res = await request(server).delete(`/questions/${question.insertedId}`);
+        const res = await request(server)
+            .post('/questions')
+            .send(newQuestion);
+
+        expect(res.statusCode).toBe(201);
+        expect(res.body).toMatchObject(newQuestion);
+    });
+
+    test('POST /collections - sollte eine neue Sammlung hinzufügen', async () => {
+        const newCollection = {
+            name: "test10",
+            type: "Quiz",
+        };
+
+        const res = await request(server)
+            .post('/collections')
+            .send(newCollection);
+
+        expect(res.statusCode).toBe(201);
+        expect(res.body).toMatchObject(newCollection);
+    });
+
+    test('POST /collections - sollte eine Sammlung vom Typ Fragesammlung hinzufügen', async () => {
+        const newCollection = {
+            name: "Koch2",
+            type: "Fragesammlung",
+        };
+
+        const res = await request(server)
+            .post('/collections')
+            .send(newCollection);
+
+        expect(res.statusCode).toBe(201);
+        expect(res.body).toMatchObject(newCollection);
+    });
+
+    test('GET /questions - sollte alle Fragen abrufen', async () => {
+        const res = await request(server).get('/questions');
+
         expect(res.statusCode).toBe(200);
-        expect(res.body.message).toBe('Frage erfolgreich gelöscht');
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ frage: "Wie alt ist Liam?" }),
+                expect.objectContaining({ frage: "Wie heisst du" }),
+                expect.objectContaining({ frage: "Bin ich liam" })
+            ])
+        );
+    });
+
+    test('GET /collections - sollte alle Sammlungen abrufen', async () => {
+        const res = await request(server).get('/collections');
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: "test10" }),
+                expect.objectContaining({ name: "Koch2" })
+            ])
+        );
+    });
+
+    test('GET /questions/:id - sollte eine Frage nach ID abrufen', async () => {
+        const questionId = "6767f6d4f89b5c5d5e1b7803";
+        const res = await request(server).get(`/questions/${questionId}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty("_id", questionId);
+    });
+
+    test('PUT /questions/update/:id - sollte eine Frage basierend auf ID aktualisieren', async () => {
+        const questionId = "6767f6d4f89b5c5d5e1b7803";
+        const updates = { frage: "Wie alt ist Liam jetzt?", antwort: "19" };
+
+        const res = await request(server)
+            .put(`/questions/update/${questionId}`)
+            .send(updates);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toMatchObject(updates);
+    });
+
+    test('PUT /questions/update-by-collection-or-quiz - sollte Fragen basierend auf Fragesammlung oder Quiz aktualisieren', async () => {
+        const updates = { antwort: "20" };
+        const res = await request(server)
+            .put('/questions/update-by-collection-or-quiz')
+            .send({ fragesammlung: "Liam Koch", quiz: "Liam", updates });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('modifiedCount');
+    });
+
+    test('PUT /collections/update/:id - sollte eine Sammlung basierend auf ID aktualisieren', async () => {
+        const collectionId = "6749d8683e24a106921229c3";
+        const updates = { name: "Koch Updated", type: "Fragesammlung" };
+
+        const res = await request(server)
+            .put(`/collections/update/${collectionId}`)
+            .send(updates);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toMatchObject(updates);
+    });
+
+    test('PUT /questions/update-by-collection-or-quiz/:fragesammlung - sollte Fragen basierend auf Fragesammlung aktualisieren', async () => {
+        const fragesammlung = "Liam Koch";
+        const updates = { antwort: "22" };
+
+        const res = await request(server)
+            .put(`/questions/update-by-collection-or-quiz/${fragesammlung}`)
+            .send(updates);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('message');
+        expect(res.body).toHaveProperty('details');
+    });
+
+    test('DELETE /questions/:id - sollte eine Frage löschen', async () => {
+        const questionId = "6767f6d4f89b5c5d5e1b7803";
+
+        const res = await request(server).delete(`/questions/${questionId}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty("message", "Frage erfolgreich gelöscht");
+    });
+
+    test('GET /questions/by-quiz/:quizName - sollte Fragen nach Quiz abrufen', async () => {
+        const quizName = "Liam";
+
+        const res = await request(server).get(`/questions/by-quiz/${quizName}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ quiz: quizName })
+            ])
+        );
     });
 });
