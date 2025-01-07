@@ -201,7 +201,8 @@ function addQ(){
 
   finishB.addEventListener("click", function () {
     if(inputF.value === ""){
-      title.innerHTML = "Es fehlt der Name der Fragesammlung"
+      let title = document.querySelector("#titelF")
+      title.innerHTML = "Es fehlt der Name Fragensammlung";
       title.style.color = "red";
     }else {
       let type = "Quiz";
@@ -293,7 +294,8 @@ function multi(){
 
     if(fragensammlung === null){
       if(input.value === ""){
-        title.innerHTML = "Es fehlt der Name der Fragesammlung"
+        let title = document.querySelector("#titelF")
+        title.innerHTML = "Es fehlt der Name Fragensammlung";
         title.style.color = "red";
       }else {
         container.remove();
@@ -371,7 +373,9 @@ function normal(){
     let question = "";
     if(fragensammlung === null){
       if(input.value === ""){
-        title.innerHTML = "Es fehlt der Name der Fragesammlung"
+        console.log("FEhler")
+        let title = document.querySelector("#titelF")
+        title.innerHTML = "Es fehlt der Name Fragensammlung";
         title.style.color = "red";
       }else {
         container.remove();
