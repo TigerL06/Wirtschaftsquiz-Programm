@@ -132,29 +132,29 @@ p{
 }
 
 #option1{
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     background-color: red;
     margin: 20px;
 }
 
 #option2{
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     background-color: blue;
     margin: 20px;
 }
 
 #option3{
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     background-color: yellow;
     margin: 20px;
 }
 
 #option4{
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     background-color: green;
     margin: 20px;
 }

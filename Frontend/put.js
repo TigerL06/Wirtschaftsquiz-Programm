@@ -318,12 +318,14 @@ async function editQuestion(fragesammlung, id){
 
     let auswahlen = [];
     let i = 0;
-    Object.values(question.auswahl).forEach(element => {
-      auswahlen[i] = element;
-      console.log(auswahlen[i])
-      i++;
-      
-    });
+    if(question.auswahl != null){
+      Object.values(question.auswahl).forEach(element => {
+        auswahlen[i] = element;
+        console.log(auswahlen[i])
+        i++;
+        
+      });
+    }
 
     // Event listener für den Edit-Button
     editButton.addEventListener("click", function () {
