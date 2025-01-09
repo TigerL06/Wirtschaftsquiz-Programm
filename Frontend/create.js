@@ -373,7 +373,6 @@ function normal(){
     let question = "";
     if(fragensammlung === null){
       if(input.value === ""){
-        console.log("FEhler")
         let title = document.querySelector("#titelF")
         title.innerHTML = "Es fehlt der Name Fragensammlung";
         title.style.color = "red";

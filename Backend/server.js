@@ -28,7 +28,10 @@ const Sammlungen = mongoose.model('Sammlungen', collectionSchema);
 const Fragen = mongoose.model('Fragen', questionSchema);
 
 // MongoDB Verbindung
-mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/?retryWrites=true&w=majority&appName=DBWirtschaftsquiz')
+mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/Wirtschaftsquiz?retryWrites=true&w=majority&appName=DBWirtschaftsquiz', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
     .then(() => {
         console.log('MongoDB connected');
 
@@ -39,7 +42,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Alle Sammlungen abrufen
         app.get('/collections', async (req, res) => {
             try {
-                const collections = await mongoose.connection.db.collection('sammlungens').find().toArray();
+                const collections = await mongoose.connection.db.collection('Sammlungen').find().toArray();
                 res.status(200).json(collections);
             } catch (error) {
                 res.status(500).json({ error: error.message });
@@ -49,7 +52,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Alle Fragen abrufen
         app.get('/questions', async (req, res) => {
             try {
-                const questions = await mongoose.connection.db.collection('fragens').find().toArray();
+                const questions = await mongoose.connection.db.collection('Fragen').find().toArray();
                 res.status(200).json(questions);
             } catch (error) {
                 res.status(500).json({ error: error.message });
@@ -59,7 +62,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Frage nach ID abrufen
         app.get('/questions/:id', async (req, res) => {
             try {
-                const question = await mongoose.connection.db.collection('fragens').findOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+                const question = await mongoose.connection.db.collection('Fragen').findOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
                 if (!question) {
                     return res.status(404).json({ error: 'Frage nicht gefunden' });
                 }
@@ -72,7 +75,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Fragen nach Fragesammlungsnamen holen
         app.get('/questions/by-fragesammlung/:name', async (req, res) => {
             try {
-                const questions = await mongoose.connection.db.collection('fragens').find({ fragesammlung: req.params.name }).toArray();
+                const questions = await mongoose.connection.db.collection('Fragen').find({ fragesammlung: req.params.name }).toArray();
                 res.status(200).json(questions);
             } catch (error) {
                 res.status(500).json({ error: error.message });
@@ -82,7 +85,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Fragen nach Fragenamen holen
         app.get('/questions/by-fragename/:name', async (req, res) => {
             try {
-                const questions = await mongoose.connection.db.collection('fragens').find({ frage: req.params.name }).toArray();
+                const questions = await mongoose.connection.db.collection('Fragen').find({ frage: req.params.name }).toArray();
                 res.status(200).json(questions);
             } catch (error) {
                 res.status(500).json({ error: error.message });
@@ -95,7 +98,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         app.put('/questions/update-by-collection-or-quiz', async (req, res) => {
             try {
                 const { fragesammlung, quiz, updates } = req.body;
-                const updated = await mongoose.connection.db.collection('fragens').updateMany(
+                const updated = await mongoose.connection.db.collection('Fragen').updateMany(
                     { $or: [{ fragesammlung }, { quiz }] },
                     { $set: updates }
                 );
@@ -108,7 +111,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Frage ändern basierend auf FrageID
         app.put('/questions/update/:id', async (req, res) => {
             try {
-                const updated = await mongoose.connection.db.collection('fragens').findOneAndUpdate(
+                const updated = await mongoose.connection.db.collection('Fragen').findOneAndUpdate(
                     { _id: new mongoose.Types.ObjectId(req.params.id) },
                     { $set: req.body },
                     { returnOriginal: false }
@@ -122,7 +125,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Fragesammlung oder Quiz ändern basierend auf ID
         app.put('/collections/update/:id', async (req, res) => {
             try {
-                const updated = await mongoose.connection.db.collection('sammlungens').findOneAndUpdate(
+                const updated = await mongoose.connection.db.collection('Sammlungen').findOneAndUpdate(
                     { _id: new mongoose.Types.ObjectId(req.params.id) },
                     { $set: req.body },
                     { returnOriginal: false }
@@ -143,7 +146,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
                 const updates = req.body;
                 console.log('Updates:', updates); // Log die Änderungen
 
-                const updated = await mongoose.connection.db.collection('fragens').updateMany(
+                const updated = await mongoose.connection.db.collection('Fragen').updateMany(
                     { fragesammlung: { $regex: new RegExp(`^${fragesammlung}$`, 'i') } }, // Case-insensitive Regex
                     { $set: updates }
                 );
@@ -165,7 +168,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         app.get('/questions/by-quiz/:quizName', async (req, res) => {
             try {
                 const quizName = req.params.quizName;
-                const questions = await mongoose.connection.db.collection('fragens').find({ quiz: quizName }).toArray();
+                const questions = await mongoose.connection.db.collection('Fragen').find({ quiz: quizName }).toArray();
         
                 if (!questions.length) {
                     return res.status(404).json({ message: 'Keine Fragen für dieses Quiz gefunden.' });
@@ -185,7 +188,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Neue Fragesammlung oder Quiz erstellen
         app.post('/collections', async (req, res) => {
             try {
-                const result = await mongoose.connection.db.collection('sammlungens').insertOne(req.body);
+                const result = await mongoose.connection.db.collection('Sammlungen').insertOne(req.body);
                 res.status(201).json(result.ops[0]);
             } catch (error) {
                 res.status(500).json({ error: error.message });
@@ -195,7 +198,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Neue Frage erstellen
         app.post('/questions', async (req, res) => {
             try {
-                const result = await mongoose.connection.db.collection('fragens').insertOne(req.body);
+                const result = await mongoose.connection.db.collection('Fragen').insertOne(req.body);
                 res.status(201).json(result.ops[0]);
             } catch (error) {
                 res.status(500).json({ error: error.message });
@@ -207,7 +210,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Frage löschen
         app.delete('/questions/:id', async (req, res) => {
             try {
-                const deleted = await mongoose.connection.db.collection('fragens').deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+                const deleted = await mongoose.connection.db.collection('Fragen').deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
                 if (deleted.deletedCount === 0) {
                     return res.status(404).json({ error: 'Frage nicht gefunden' });
                 }
@@ -220,7 +223,7 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
         // Fragesammlung löschen
         app.delete('/collections/:id', async (req, res) => {
             try {
-                const deleted = await mongoose.connection.db.collection('sammlungens').deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+                const deleted = await mongoose.connection.db.collection('Sammlungen').deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
                 if (deleted.deletedCount === 0) {
                     return res.status(404).json({ error: 'Sammlung nicht gefunden' });
                 }
@@ -236,4 +239,5 @@ mongoose.connect('mongodb+srv://admin:admin@dbwirtschaftsquiz.vjbjm.mongodb.net/
 
     })
     .catch(err => console.error('MongoDB connection error:', err));
+    
     

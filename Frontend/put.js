@@ -24,7 +24,7 @@ async function getSammlungen(){
       mainText.textContent = collection.name;
 
       let buttonE = document.createElement("button");
-      buttonE.innerHTML = "Veraendern";
+      buttonE.innerHTML = "Verändern";
 
       let buttonP = document.createElement("button");
       buttonP.innerHTML = "Spielen";

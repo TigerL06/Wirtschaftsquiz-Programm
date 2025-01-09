@@ -142,6 +142,23 @@ function home(){
   button.innerHTML = "Fragesammlung erstellen";
   button.setAttribute("id", "add");
 
+  let squareDiv = document.createElement("div")
+  squareDiv.setAttribute("id", "squareDiv")
+
+  let squareBlue = document.createElement("div");
+  squareBlue.setAttribute("id", "blue");
+
+  // Text-Element erstellen
+  let labelBlue = document.createElement("span");
+  labelBlue.innerHTML = "Quiz";
+
+  let squareRed = document.createElement("div");
+  squareRed.setAttribute("id", "red");
+
+  // Text-Element erstellen
+  let labelRed = document.createElement("span");
+  labelRed.innerHTML = "Fragesammlung"
+
   let buttonQ = document.createElement("button");
   buttonQ.innerHTML = "Quiz erstellen";
   buttonQ.setAttribute("id", "addQ");
@@ -149,6 +166,11 @@ function home(){
   main.setAttribute("id", "center");
   top.appendChild(button);
   top.appendChild(buttonQ);
+  squareDiv.appendChild(squareBlue)
+  squareDiv.appendChild(labelBlue)
+  squareDiv.appendChild(squareRed)
+  squareDiv.appendChild(labelRed)
+  top.appendChild(squareDiv)
   container.appendChild(top);
   container.appendChild(main);
   window.parent.appendChild(container);
